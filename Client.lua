@@ -71,7 +71,6 @@ function SpawnChristine()
             SetEntityVisible(Driver, false, false)
             SetPedCombatAttributes(Driver, 3, false)
             SetEntityProofs(Driver, false, true, false, false, false, false, false, false)
-            SetEntityInvincible(Driver, true)
             SetPedConfigFlag(Driver, 109, true)
             SetPedConfigFlag(Driver, 116, false)
             SetPedConfigFlag(Driver, 118, false)
@@ -101,32 +100,30 @@ function DespawnChristine()
     PlaySoundFromEntity(-1,"Despawn_In_Game",Christine,"DLC_Tuner_Halloween_Phantom_Car_Sounds", true, false)
     TriggerMusicEvent("H21_PC_STOP_MUSIC")
     Citizen.Wait(1000)
+    NetworkRequestControlOfEntity(Christine)
+    while not NetworkHasControlOfEntity(Christine) do
+        Wait(100)
+    end
     DeleteEntity(Christine)
+    NetworkRequestControlOfEntity(Driver)
+    while not NetworkHasControlOfEntity(Driver) do
+        Wait(100)
+    end
     DeleteEntity(Driver)
     Spawned = false
     Christine = nil
     Driver = nil
 end
 
-AddEventHandler("gameEventTriggered", function (Name, Args)
-    if Name == "CEventNetworkEntityDamage" and Driver then
-        print(Driver, Args[2])
-        if Args[2] == Driver and Angered then
-            if Args[6] == true then
-                StopEntityFire(PlayerPedId())
-            end
-            if not IsEntityOnFire(PlayerPedId()) then
-                StartEntityFire(PlayerPedId())
-            end
-        end
-    end
-end)
-
 RegisterNetEvent("PC:SpawnClient")
 AddEventHandler("PC:SpawnClient", function()
     SpawnChristine()
 end)
 
+RegisterNetEvent('PC:DespawnClient')
+AddEventHandler('PC:DespawnClient', function()
+    DespawnChristine()
+end)
 
 Citizen.CreateThread(function()
     while true do
@@ -136,7 +133,7 @@ Citizen.CreateThread(function()
         end
         if Spawned then
             local Player = PlayerPedId()
-            if IsEntityDead(Christine) and CanSpawn then
+            if IsEntityDead(Driver) and CanSpawn then
                 --print(CanSpawn, 2)
                 DespawnChristine()
                 CanSpawn = false
@@ -164,24 +161,6 @@ Citizen.CreateThread(function()
                 ToggleVehicleMod(Christine, 22, false)
                 TaskVehicleFollow(Driver, Christine, Player, 30.0, 786469, 20)
             end
-        end
-    end
-end)
-
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(1000)
-        --print(GetTimeDifference(GetClockHours(),21),GetTimeDifference(GetClockHours(),5))
-        if GetTimeDifference(GetClockHours(),21) == 0 and not Spawned and CanSpawn then
-            TriggerServerEvent("PC:SpawnServer")
-            --SpawnChristine()
-        end
-        if GetTimeDifference(GetClockHours(),5) == 0 and Spawned then
-            --print(Spawned,3)
-            DespawnChristine()
-        end
-        if GetTimeDifference(GetClockHours(),5) == 0 and not CanSpawn then
-            CanSpawn = true
         end
     end
 end)
