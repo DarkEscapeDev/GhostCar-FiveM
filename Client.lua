@@ -127,11 +127,12 @@ end)
 
 Citizen.CreateThread(function()
     while true do
-        Citizen.Wait(0)
+        local wait = 2000
         if not HasNamedPtfxAssetLoaded("scr_tn_phantom") then
             RequestNamedPtfxAsset("scr_tn_phantom")
         end
         if Spawned then
+            wait = 0
             local Player = PlayerPedId()
             if IsEntityDead(Driver) and CanSpawn then
                 --print(CanSpawn, 2)
@@ -162,5 +163,6 @@ Citizen.CreateThread(function()
                 TaskVehicleFollow(Driver, Christine, Player, 30.0, 786469, 20)
             end
         end
+        Citizen.Wait(wait)
     end
 end)
